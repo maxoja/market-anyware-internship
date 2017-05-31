@@ -19,6 +19,19 @@ def create_plot_layout(slider=False, title='not set', x_title='', y_title=''):
     return layout
     
     
+def create_line_graph(y, x=[], name = '' ):
+    if len(x) == 0 :
+        x = list(range(0, len(y)))
+        
+    graph_obj = graph_objs.Scatter(
+        x = x,
+        y = y,
+        mode = 'line',
+        name = name
+    )
+    
+    return graph_obj
+    
 def create_dot_graph_2d ( coor ) :
     
     graph_obj = graph_objs.Scatter(

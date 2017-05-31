@@ -1,6 +1,6 @@
 import plotly.plotly as plotly
 
-from loader import load_data_from_api
+from datautil.loader import load_data_from_api
 
 from graph_object_creator import create_dot_graph_3d
 from graph_object_creator import create_candle_graph

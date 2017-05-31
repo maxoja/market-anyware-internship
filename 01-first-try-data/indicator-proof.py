@@ -1,8 +1,7 @@
 from collections import OrderedDict
 
 from loader import load_data_from_api
-from plotly_authentication import login_plotly
-
+from plotlyutil.authentication import login as login_plotly
 from graph_plotter import plot_3d_figure
 import graph_object_creator as gcreator
 import investor as inv
