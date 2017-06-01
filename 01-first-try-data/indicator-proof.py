@@ -1,11 +1,10 @@
 from collections import OrderedDict
 
-from loader import load_data_from_api
+from datautil.loader import load_data_from_api
 from plotlyutil.authentication import login as login_plotly
 from graph_plotter import plot_3d_figure
 import graph_object_creator as gcreator
 import investor as inv
-import loader
 import signal_finder as sigfinder
 import container_util as util
     
@@ -39,6 +38,8 @@ def execute_investment ( signals , investor ) :
     
 class TestResult ( OrderedDict ) :
     def __init__ ( self , stats ) :
+        super().__init__()
+        
         count_signals = stats[ 'signals' ]
         count_correct = stats[ 'correct' ]
         count_wrong = stats[ 'wrong' ]

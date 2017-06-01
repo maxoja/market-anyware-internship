@@ -12,18 +12,23 @@ from graph_plotter import plot_3d_figure
 from investor import BoundingInvestor
 from investor import FixedPeriodInvestor
 
+def float_list(data_list):
+    return [float(x) for x in data_list]
+    
+def float_nparray(data_list):
+    return np.array(float_list(data_list))
 
+def close(data_list):
+    return data_list.Close
 
 stock = 'SET'
 timeframe = 'DAY'
 
 stock_data = load_data_from_api(stock, timeframe)
 price = stock_data.Close
-flist = lambda data_list : [ float(x) for x in data_list ]
-farray = lambda data_list : np.array(flist(data_list))
 
 
-farray_price = farray(price)
+farray_price = float_nparray(price)
 
 rsi = RSI(farray_price)
 macd,macd_signal,macd_hist = MACD(farray_price,26,12,9)
