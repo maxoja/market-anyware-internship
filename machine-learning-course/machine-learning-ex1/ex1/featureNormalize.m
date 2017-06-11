@@ -27,9 +27,16 @@ sigma = zeros(1, size(X, 2));
 %       
 
 for i = 1:size(X,2)
+  %find mean of a feature
   mu(1,i) = mean(X_norm(:,i));
+  
+  %substract mean from original values of the feature
   X_norm(:,i) -= mu(1,i);
+  
+  %find standard deviation of the substacted values
   sigma(1,i) = std(X_norm(:,i));
+  
+  %devide the values with S.D. value found
   X_norm(:,i) /= sigma(1,i);
 end
 
