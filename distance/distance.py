@@ -31,5 +31,6 @@ figure = graph.figure(layout, price_chart)
 plot(figure, title = 'temp plot')
 
 
+
 figure = graph.figure(layout, distance_line)
 plot(figure, title = 'temp plot')
