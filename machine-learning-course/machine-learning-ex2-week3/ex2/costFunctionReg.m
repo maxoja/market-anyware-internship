@@ -25,10 +25,10 @@ linear_prediction = X*theta;
 prediction = sigmoid(linear_prediction);
 
 %find cost
-cost_positive = -1 * (y'*(log(prediction)));
-cost_negative = -1 * ((1 .- y)'*(1 .- log(prediction)));
-cost_regularization = constant_regularization*sum(theta(2:end,1) .^ 2);
-J = constant*(cost_positive + cost_negative) + cost_regularization;
+case_positive_cost = -1 .* (y'*log(prediction)); %scalar
+case_negative_cost = -1 .* ((1 .- y)'*log(1 .- prediction)); %scalar
+cost_regularization = constant_regularization*sum(theta(2:end) .^ 2);
+J = constant*(case_positive_cost + case_negative_cost) + cost_regularization;
 
 %find gradient
 grad = constant*( X'*(prediction .- y)) .+ constant_reg_grad*theta;
