@@ -25,7 +25,7 @@ def local_min_max_with_high_low_sensitive( data_frame ):
     
     return local_min, local_max
 
-def local_min_max( data ):
+def local_min_max( data, mode = 'both'):
     local_peak_location = local_peak(data, 4, 1)
     local_min_location, local_max_location = local_peak_location['min'], local_peak_location['max']
     local_min_value = [ data[location] for location in local_min_location ]
@@ -34,20 +34,14 @@ def local_min_max( data ):
     local_min = dict(x=local_min_location, y=local_min_value)
     local_max = dict(x=local_max_location, y=local_max_value)
     
-    return local_min, local_max
-
-def convergence(x1, y1, x2, y2):
-    slope1
-    slope1 = np.sign(np.diff(local_value1[-2:]))[0]
-    slope2 = np.sign(np.diff(local_value2[-2:]))[0]
-    
-    return slope1 == slope2
-
-def divergence(local_value1, local_value2):
-    slope1 = np.sign(np.diff(local_value1[-2:]))[0]
-    slope2 = np.sign(np.diff(local_value2[-2:]))[0]
-    
-    return slope1 != slope2
+    if mode == 'both':
+        return local_min, local_max
+    elif mode.lower() == 'min':
+        return local_min
+    elif mode.lower() == 'max':
+        return local_max
+    else :
+        raise
 
 def signal(local_price, local_rsi, overlap_allow=0.4):
     if len(local_price['x']) < 2:
@@ -85,6 +79,55 @@ def trend_line(peak, shift):
         color = 'green'
         
     return graph.trace_line_with_domain(x=x, y=y, color=color, width=1)
+
+def signals(data_frame_snapshot):
+    high = data_frame_snapshot.High
+    low = data_frame_snapshot.Low
+    close = data_frame_snapshot.Close
+    rsi = RSI(close)
+    
+    max_price_location = local_min_max(high, mode='max')
+    min_price_location = local_min_max(low, mode='min')
+    max_rsi_location, min_rsi_location = local_min_max(rsi, mode='both')
+    
+    max_price_value = [ high[x] in max_price_location ]
+    min_price_value = [ low[x] in min_price_location ]
+    max_rsi_value = [ rsi[x] in max_rsi_location ]
+    min_rsi_value = [ rsi[x] in min_rsi_location ]
+    
+    bullish_trend = None
+    bearish_trend = None
+    
+    #--------- fil
+    #-------- trend line extraction process ------------------
+    #option 1 : find all possible trend line
+    #find all possible trend line of low rsi
+    
+    #find all possible trend line of high rsi
+    
+    #find all possible trend line of low price
+    
+    #find all possible trend line of high price
+    
+    #option 2 : find best trend line
+    #use longest trend line that does not intercept with any price line point
+    #-------------------------------------------------------
+    
+    #if option 1 :
+    #filter out if it is None
+    #match best pair ( low-rsi, low-price ) trend line
+    #match best pair ( high-rsi, high-price ) trend line )
+    #evaluate bearish signal
+    #evaluate bullish signal
+    
+    #if option 2:
+    #find all acceptable pair of trend lines ( low-rsi, low-price )
+    #find all acceptable pair of trend line ( hifh-price, hifh-rsi )
+    #evaluate direction and quality of pair evaluation and sum them up or somehow
+    
+    
+    return bullish_trend, bearish_trend
+    
     
 if __name__ == '__main__':
     #pseudo constant parameter
