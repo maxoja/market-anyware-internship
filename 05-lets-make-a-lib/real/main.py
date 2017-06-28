@@ -15,7 +15,7 @@ if __name__ == '__main__':
     MAX_TREND = 35
     SHIFT_ALLOW = 6
     ALLOW_INTERCEPT = False
-    PLOT = True
+    PLOT = False
     
     data_frame = data_from_api('SET', 'DAY')#[100:500].reset_index()
     close = data_frame.Close
@@ -26,24 +26,24 @@ if __name__ == '__main__':
     start_time = (time.time())
     print('started')
     
-    if PLOT :
-        signals, plots = signal_of_series(
-            data_high, data_low, data_rsi,
-            SNAPSHOT_SIZE, MIN_TREND, MAX_TREND, SHIFT_ALLOW, ALLOW_INTERCEPT,
-            n_neighbor=4, h=1, return_graph_objects=PLOT
-        )
-    else :
-        signals = signal_of_series(
-            data_high, data_low, data_rsi,
-            SNAPSHOT_SIZE, MIN_TREND, MAX_TREND, SHIFT_ALLOW, ALLOW_INTERCEPT,
-            n_neighbor=4, h=1, return_graph_objects=PLOT
-        )
-
-##    signal_of_series(
+##    if PLOT :
+##        signals, plots = signal_of_series(
 ##            data_high, data_low, data_rsi,
 ##            SNAPSHOT_SIZE, MIN_TREND, MAX_TREND, SHIFT_ALLOW, ALLOW_INTERCEPT,
 ##            n_neighbor=4, h=1, return_graph_objects=PLOT
-##    )
+##        )
+##    else :
+##        signals = signal_of_series(
+##            data_high, data_low, data_rsi,
+##            SNAPSHOT_SIZE, MIN_TREND, MAX_TREND, SHIFT_ALLOW, ALLOW_INTERCEPT,
+##            n_neighbor=4, h=1, return_graph_objects=PLOT
+##        )
+
+    signal_of_series(
+            data_high, data_low, data_rsi,
+            SNAPSHOT_SIZE, MIN_TREND, MAX_TREND, SHIFT_ALLOW, ALLOW_INTERCEPT,
+            n_neighbor=4, h=1, return_graph_objects=PLOT
+    )
     
     end_time = (time.time())
     print('finished in :', (end_time - start_time), 'seconds')
