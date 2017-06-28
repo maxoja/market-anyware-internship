@@ -5,15 +5,23 @@ import numpy as np
 #mode 1 -> max
 #mode 2 -> min and max
 ## lib function for import ##########################################
-def local_min_max( data_list, n_neighbor, h, mode=2, neighbor_direction='leftright', shift_x=None):
+def local_min_max( data_list, n_neighbor, h, mode=2, shift_x=None, start=None, end=None):
+    if start is None or end is None :
+        start = 0
+        end = len(data_list)
+        
+    if mode not in range(0,3) :
+        raise ValueError("unknow mode : " + str(mode))
+        
     if mode == 0 or mode == 2 :
-        local_min_location = local_peak_location(data_list, n_neighbor, h, 0, neighbor_direction)
+        local_min_location = local_peak_location(data_list, n_neighbor, h, 0)
         local_min_value = [ data_list[location] for location in local_min_location ]
         if shift_x is not None :
             local_min_location = [ x+1 for x in local_min_location ]
         local_min = dict(x=local_min_location, y=local_min_value)
+        
     if mode == 1 or mode == 2 :
-        local_max_location = local_peak_location(data_list, n_neighbor, h, 1, neighbor_direction)
+        local_max_location = local_peak_location(data_list, n_neighbor, h, 1)
         local_max_value = [ data_list[location] for location in local_max_location ]
         if shift_x is not None :
             local_max_location = [ x+1 for x in local_max_location ]
@@ -21,14 +29,12 @@ def local_min_max( data_list, n_neighbor, h, mode=2, neighbor_direction='leftrig
     
     if mode == 2:
         return local_min, local_max
-    elif mode == 0:
+    if mode == 0:
         return local_min
-    elif mode == 1:
+    if mode == 1:
         return local_max
-    else :
-        return None
 
-## private function purpose internal calls ##############
+# private function purpose internal calls ##############
 def get_neighbor(value_list, current_index, n_neighbor) :
     left_inclusive = 0 if current_index - n_neighbor < 0 else current_index - n_neighbor
     right_exclusive = current_index + n_neighbor + 1
@@ -51,7 +57,7 @@ def all_higher_lower(data, current_index, left_inclusive, right_exclusive, mode)
             if data[i] >= data[current_index] :
                 return False
     else :
-        raise 'unknown mode'
+        raise ValueError("unknow mode : " + str(mode))
 
     return True
 
@@ -73,7 +79,7 @@ def locate_peak(mode, locations, data, n_neighbor, neighbor_direction):
         elif neighbor_direction == 'leftright' :
             pass
         else :
-            raise 'error : unknown neighbor_direction ' + str(neighbor_direction)
+            raise ValueError('error : unknown neighbor_direction ' + str(neighbor_direction))
         
         if all_higher_lower(data, current_location, left_index_inclusive, right_index_exclusive, mode) :
             result.append(current_location)
@@ -163,4 +169,4 @@ def local_peak_location(data, n_neighbor, h, mode=2, neighbor_direction='leftrig
     elif mode == 1 :
         return location_max_peak
     else :
-        return None
+        raise ValueError("unknow mode : " + str(mode))

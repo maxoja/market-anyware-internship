@@ -3,6 +3,7 @@ from local_min_max import local_min_max
 from plotlyutil import graph
 
 import time
+import numpy as np
 
 ## lib function for import ##############################
 def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_trend=10, max_trend=35, shift_allowed=6, allowed_intercept=False, n_neighbor=4, h=1, return_graph_objects=False) :
@@ -27,50 +28,94 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_tr
     high_divergence = []
     trends_plot = []
     signal_series = []
-
-    initial_min_peak_price = None
-    initial_max_peak_price = None
-    initial_min_peak_rsi = None
-    initial_max_peak_rsi = None
+    
+    local_min_price = None
+    local_max_price = None
+    local_min_rsi = None
+    local_max_rsi = None
     
     for i in range(0, len_series - size_snapshot) :
-        '''
-        if initial_min_peak_price is None :
-            initial_min_peak_rsi, initial_max_peak_rsi = local_min_max(rsi_series[:size_snapshot], n_neighbor, h, mode=2)
-            initial_min_peak_price = local_min_max(low_series[:size_snapshot], n_neighbor, h, mode=0)
-            initial_max_peak_price = local_min_max(high_series[:size_snapshot], n_neighbor, h, mode=1)
+        end_of_snap = i + size_snapshot
+        
+        if local_min_price is None :
+            local_min_rsi, local_max_rsi = local_min_max(rsi_series[:end_of_snap], n_neighbor, h, mode=2)
+            local_min_price = local_min_max(low_series[:end_of_snap], n_neighbor, h, mode=0)
+            local_max_price = local_min_max(high_series[:end_of_snap], n_neighbor, h, mode=1)
 
+##            print(len(local_max_price['x']))
+##            print(len(local_min_price['x']))
+##            print(len(local_min_rsi['x']))
+##            print(len(local_min_rsi['x']))
+            
         else :
-            right_high = tiny_cut(high_series, i, i+size_snapshot, n_neighbor)
-            right_low = tiny_cut(low_series, i, i+size_snapshot, n_neighbor)
-            right_rsi = tiny_cut(rsi_series, i, i+size_snapshot, n_neighbor)
+            tiny_size = 1 + 2*n_neighbor
+            tiny_end = end_of_snap
+            tiny_start = tiny_end - tiny_size
 
-            peak_max_price_right = local_min_max(right_high, n_neighbor, h, mode=1)
-            peak_min_price_right = local_min_max(right_low, n_neighbor, h, mode=0)
-            peak_max_rsi_right, peak_min_rsi_right = local_min_max(right_rsi, n_neighbor, h, mode=2)
-##
-##            peaks_left = [peak_max_price_left, peak_min_price_left, peak_max_rsi_left]
-##            peaks_right = [peak_max_price_right, peak_min_price_right, peak_max_rsi_right]
-##            for peak_dict in peaks_left :
-##                peak_dict['x'] = [ x + i for x in peak_dict['x'] ]
-##            for peak_dict in peaks_right :
-##                len_cut = len(right_rsi)
-##                peak_dict['x'] = [ x + i + size_snapshot - len_cut for x in peak_dict['x'] ]
-        '''
+##            print('max price')
+            peak_max_price_right = local_min_max(high_series[tiny_start:tiny_end], n_neighbor, h, mode=1)
+##            print('min price')
+            peak_min_price_right = local_min_max(low_series[tiny_start:tiny_end], n_neighbor, h, mode=0)
+##            print('min max rsi')
+            peak_min_rsi_right, peak_max_rsi_right = local_min_max(rsi_series[tiny_start:tiny_end], n_neighbor, h, mode=2)
+##            print()
 
-        snapshot_low = low_series[i:i+size_snapshot]
-        snapshot_high = high_series[i:i+size_snapshot]
-        snapshot_rsi = rsi_series[i:i+size_snapshot]
+            if len(peak_max_price_right['x']) > 0 :
+                if peak_max_price_right['x'][-1] + tiny_start == end_of_snap - 1 :
+                    local_max_price['x'] = np.append(local_max_price['x'], peak_max_price_right['x'][-1] + tiny_start)
+                    local_max_price['y'] = np.append(local_max_price['y'], peak_max_price_right['y'][-1])
+                    
+            if len(peak_min_price_right['x']) > 0 :
+                if peak_min_price_right['x'][-1] + tiny_start == end_of_snap - 1 :
+##                    print(i)
+                    local_min_price['x'] = np.append(local_min_price['x'], peak_min_price_right['x'][-1] + tiny_start)
+                    local_min_price['y'] = np.append(local_min_price['y'], peak_min_price_right['y'][-1])
+                    
+            if len(peak_min_rsi_right['x']) > 0 :
+                if peak_min_rsi_right['x'][-1] + tiny_start == end_of_snap - 1  :
+##                    print(i)
+                    local_min_rsi['x'] = np.append(local_min_rsi['x'], peak_min_rsi_right['x'][-1] + tiny_start)
+                    local_min_rsi['y'] = np.append(local_min_rsi['y'], peak_min_rsi_right['y'][-1])
 
-        local_min_rsi, local_max_rsi = local_min_max(snapshot_rsi, n_neighbor, h, mode=2)
-        local_min_price = local_min_max(snapshot_low, n_neighbor, h, mode=0)
-        local_max_price = local_min_max(snapshot_high, n_neighbor, h, mode=1)
+            if len(peak_max_rsi_right['x']) > 0 :
+                if peak_max_rsi_right['x'][-1] + tiny_start == end_of_snap - 1  :
+##                    print(i)
+                    local_max_rsi['x'] = np.append(local_max_rsi['x'], peak_max_rsi_right['x'][-1] + tiny_start)
+                    local_max_rsi['y'] = np.append(local_max_rsi['y'], peak_max_rsi_right['y'][-1])
+
+            while len(local_max_price['x']) > 0 and end_of_snap - 1 - local_max_price['x'][0] > max_trend :
+                local_max_price['x'] = np.delete(local_max_price['x'], 0)
+                local_max_price['y'] = np.delete(local_max_price['y'], 0)
+
+            while len(local_min_price['x']) > 0 and end_of_snap - 1 - local_min_price['x'][0] > max_trend :
+                    local_min_price['x'] = np.delete(local_min_price['x'], 0)
+                    local_min_price['y'] = np.delete(local_min_price['y'], 0)
+
+            while len(local_min_rsi['x']) > 0 and end_of_snap - 1 - local_min_rsi['x'][0] > max_trend :
+                local_min_rsi['x'] = np.delete(local_min_rsi['x'], 0)
+                local_min_rsi['y'] = np.delete(local_min_rsi['y'], 0)
+
+            while len(local_max_rsi['x'])> 0 and end_of_snap - 1 - local_max_rsi['x'][0] > max_trend :
+                local_max_rsi['x'] = np.delete(local_max_rsi['x'], 0)
+                local_max_rsi['y'] = np.delete(local_max_rsi['y'], 0)
+                
+##            print(len(peak_max_price_right['x']))
+##            print(len(peak_min_price_right['x']))
+##            print(len(peak_max_rsi_right['x']))
+##            print(len(peak_max_rsi_right['x']))
+
+
+##        print(len(local_max_price['x']))
+##        print(len(local_min_price['x']))
+##        print(len(local_min_rsi['x']))
+##        print(len(local_min_rsi['x']))
+##        print()
 
         #check if we have some local
         if len(local_min_price['x']) >= 2 and len(local_min_rsi['x']) >= 2 :
             #check if both price and rsi have new local
-            new_local_price_occur = local_min_price['x'][-1] == size_snapshot-1
-            new_local_rsi_occur = local_min_rsi['x'][-1] == size_snapshot-1
+            new_local_price_occur = local_min_price['x'][-1] == i+size_snapshot-1
+            new_local_rsi_occur = local_min_rsi['x'][-1] == i+size_snapshot-1
             two_new_local = new_local_price_occur and new_local_rsi_occur
             
             if two_new_local :
@@ -95,18 +140,18 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_tr
                     signal_series.append(signal_found)
 
                 if return_graph_objects and (signal_found == 0 or signal_found == 1) :
-                    trends_plot.append(trend_line(min_price_peak, best_price_trend, shift_x=i))
-                    trends_plot.append(trend_line(min_rsi_peak, best_rsi_trend, shift_x=i, shift_y=offset_rsi_y))
+                    trends_plot.append(trend_line(min_price_peak, best_price_trend, shift_x=0))
+                    trends_plot.append(trend_line(min_rsi_peak, best_rsi_trend, shift_x=0, shift_y=offset_rsi_y))
         
         #------------------------------
         
         #check if we have some local
         if len(local_max_price['x']) >= 2 and len(local_max_rsi['x']) >= 2 :
             #check if both price and rsi have new local
-            new_local_price_occur = local_max_price['x'][-1] == size_snapshot-1
-            new_local_rsi_occur = local_max_rsi['x'][-1] == size_snapshot-1
+            new_local_price_occur = local_max_price['x'][-1] == i+size_snapshot-1
+            new_local_rsi_occur = local_max_rsi['x'][-1] == i+size_snapshot-1
             two_new_local = new_local_price_occur and new_local_rsi_occur
-            
+
             if two_new_local :
                 max_price_peak = xy_list(local_max_price)
                 max_rsi_peak = xy_list(local_max_rsi)
@@ -115,12 +160,12 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_tr
                 trends_rsi = possible_trendlines(max_rsi_peak, 1, min_length=min_trend, max_length=max_trend, allow_interception=allowed_intercept)
                 
                 best_price_trend, best_rsi_trend = match_trend_line(max_price_peak, max_rsi_peak, trends_price, trends_rsi, shift_allowed=shift_allowed)
-                
+
                 if best_price_trend is None or best_rsi_trend is None :
                     continue
                 
                 signal_found = signal_of_two_trends(max_price_peak, max_rsi_peak, best_price_trend, best_rsi_trend, 1)
-            
+
                 if signal_found == 4:
                     high_divergence.append(i + size_snapshot - 1)
                     signal_series.append(signal_found)
@@ -129,11 +174,11 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_tr
                     signal_series.append(signal_found)
 
                 if return_graph_objects and (signal_found == 4 or signal_found == 5):
-                    trends_plot.append(trend_line(max_price_peak, best_price_trend, shift_x=i))
-                    trends_plot.append(trend_line(max_rsi_peak, best_rsi_trend, shift_x=i, shift_y=offset_rsi_y))        
+                    trends_plot.append(trend_line(max_price_peak, best_price_trend, shift_x=0))
+                    trends_plot.append(trend_line(max_rsi_peak, best_rsi_trend, shift_x=0, shift_y=offset_rsi_y))        
 
-            if len(signal_series) == i :
-                signal_series.append(None)
+        if len(signal_series) == i :
+            signal_series.append(None)
 
     if return_graph_objects :
         #create plot objects
