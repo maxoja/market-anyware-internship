@@ -1,5 +1,5 @@
 #from local_min_max import local_peak
-from datautil.loader import data_from_api
+from datautil.loader import data_from_api, load
 from plotlyutil import graph
 from plotlyutil.authentication import login
 from talib import RSI
@@ -15,9 +15,10 @@ if __name__ == '__main__':
     MAX_TREND = 35
     SHIFT_ALLOW = 6
     ALLOW_INTERCEPT = False
-    PLOT = True
+    PLOT = False
     
-    data_frame = data_from_api('SET', 'DAY')#[100:500].reset_index()
+##    data_frame = data_from_api('SET', 'DAY')#[100:500].reset_index()
+    data_frame = load('PTT.csv')#[100:500].reset_index()
     close = data_frame.Close
     data_rsi = RSI(graph.float_nparray(close))
     data_low = data_frame.Low
@@ -47,7 +48,7 @@ if __name__ == '__main__':
         
     end_time = (time.time())
     print('finished in :', (end_time - start_time), 'seconds')
-    
+
     if PLOT :
         candle_plot = graph.candlestick(data_frame)
         rsi_plot = graph.trace_line(data_rsi, name='RSI', offset_y=min(data_low)-100)
