@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 ## lib function for import ##############################
-def signal_of_series( signal_series, high_series, low_series, rsi_series, size_snapshot, min_trend=10, max_trend=35, shift_allowed=6, allowed_intercept=False, n_neighbor=4, h=1, return_graph_objects=False) :
+def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_trend=10, max_trend=35, shift_allowed=6, allowed_intercept=False, n_neighbor=4, h=1, return_graph_objects=False) :
     if len(high_series) != len(low_series) :
         raise 'mismatch series len'
     if len(low_series) != len(rsi_series) :
@@ -27,9 +27,7 @@ def signal_of_series( signal_series, high_series, low_series, rsi_series, size_s
     high_convergence = []
     high_divergence = []
     trends_plot = []
-##    signal_series = []
-    for i in range(size_snapshot) :
-        signal_series.append(None)
+    signal_series = []
     
     local_min_price = None
     local_max_price = None
@@ -164,8 +162,10 @@ def signal_of_series( signal_series, high_series, low_series, rsi_series, size_s
                         trends_plot.append(trend_line(local_max_price, best_price_trend, shift_x=0))
                         trends_plot.append(trend_line(local_max_rsi, best_rsi_trend, shift_x=0, shift_y=offset_rsi_y))        
 
-        if len(signal_series)-size_snapshot == i :
+        if len(signal_series) == i :
             signal_series.append(None)
+
+    signal_series = [ None for i in range(size_snapshot) ] + signal_series
     
     if return_graph_objects :
         #create plot objects
