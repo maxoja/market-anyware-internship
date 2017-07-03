@@ -58,41 +58,46 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_tr
             peak_min_price_right = local_min_max(low_series, n_neighbor, h, mode=0, start=tiny_start, end=tiny_end)
             peak_min_rsi_right, peak_max_rsi_right = local_min_max(rsi_series, n_neighbor, h, mode=2, start=tiny_start, end=tiny_end)
 
-            if len(peak_max_price_right['x']) > 0 :
-                if peak_max_price_right['x'][-1] == end_of_snap - 1 :
-                    local_max_price['x'] = np.append(local_max_price['x'], peak_max_price_right['x'][-1])
-                    local_max_price['y'] = np.append(local_max_price['y'], peak_max_price_right['y'][-1])
-                    
-            if len(peak_min_price_right['x']) > 0 :
-                if peak_min_price_right['x'][-1] == end_of_snap - 1 :
-                    local_min_price['x'] = np.append(local_min_price['x'], peak_min_price_right['x'][-1])
-                    local_min_price['y'] = np.append(local_min_price['y'], peak_min_price_right['y'][-1])
-                    
-            if len(peak_min_rsi_right['x']) > 0 :
-                if peak_min_rsi_right['x'][-1] == end_of_snap - 1  :
-                    local_min_rsi['x'] = np.append(local_min_rsi['x'], peak_min_rsi_right['x'][-1])
-                    local_min_rsi['y'] = np.append(local_min_rsi['y'], peak_min_rsi_right['y'][-1])
-
-            if len(peak_max_rsi_right['x']) > 0 :
-                if peak_max_rsi_right['x'][-1] == end_of_snap - 1  :
-                    local_max_rsi['x'] = np.append(local_max_rsi['x'], peak_max_rsi_right['x'][-1])
-                    local_max_rsi['y'] = np.append(local_max_rsi['y'], peak_max_rsi_right['y'][-1])
-
-            while len(local_max_price['x']) > 0 and end_of_snap - 1 - local_max_price['x'][0] > max_trend :
-                local_max_price['x'] = np.delete(local_max_price['x'], 0)
-                local_max_price['y'] = np.delete(local_max_price['y'], 0)
-
-            while len(local_min_price['x']) > 0 and end_of_snap - 1 - local_min_price['x'][0] > max_trend :
-                    local_min_price['x'] = np.delete(local_min_price['x'], 0)
-                    local_min_price['y'] = np.delete(local_min_price['y'], 0)
-
-            while len(local_min_rsi['x']) > 0 and end_of_snap - 1 - local_min_rsi['x'][0] > max_trend :
-                local_min_rsi['x'] = np.delete(local_min_rsi['x'], 0)
-                local_min_rsi['y'] = np.delete(local_min_rsi['y'], 0)
-
-            while len(local_max_rsi['x'])> 0 and end_of_snap - 1 - local_max_rsi['x'][0] > max_trend :
-                local_max_rsi['x'] = np.delete(local_max_rsi['x'], 0)
-                local_max_rsi['y'] = np.delete(local_max_rsi['y'], 0)
+            update_peaks(local_max_price, peak_max_price_right, end_of_snap, h, max_trend)
+            update_peaks(local_min_price, peak_min_price_right, end_of_snap, h, max_trend)
+            update_peaks(local_max_rsi, peak_max_rsi_right, end_of_snap, h, max_trend)
+            update_peaks(local_min_rsi, peak_min_rsi_right, end_of_snap, h, max_trend)
+            
+##            if len(peak_max_price_right['x']) > 0 :
+##                if peak_max_price_right['x'][-1] == end_of_snap - 1 :
+##                    local_max_price['x'] = np.append(local_max_price['x'], peak_max_price_right['x'][-1])
+##                    local_max_price['y'] = np.append(local_max_price['y'], peak_max_price_right['y'][-1])
+##                    
+##            if len(peak_min_price_right['x']) > 0 :
+##                if peak_min_price_right['x'][-1] == end_of_snap - 1 :
+##                    local_min_price['x'] = np.append(local_min_price['x'], peak_min_price_right['x'][-1])
+##                    local_min_price['y'] = np.append(local_min_price['y'], peak_min_price_right['y'][-1])
+##                    
+##            if len(peak_min_rsi_right['x']) > 0 :
+##                if peak_min_rsi_right['x'][-1] == end_of_snap - 1  :
+##                    local_min_rsi['x'] = np.append(local_min_rsi['x'], peak_min_rsi_right['x'][-1])
+##                    local_min_rsi['y'] = np.append(local_min_rsi['y'], peak_min_rsi_right['y'][-1])
+##
+##            if len(peak_max_rsi_right['x']) > 0 :
+##                if peak_max_rsi_right['x'][-1] == end_of_snap - 1  :
+##                    local_max_rsi['x'] = np.append(local_max_rsi['x'], peak_max_rsi_right['x'][-1])
+##                    local_max_rsi['y'] = np.append(local_max_rsi['y'], peak_max_rsi_right['y'][-1])
+##
+##            while len(local_max_price['x']) > 0 and end_of_snap - 1 - local_max_price['x'][0] > max_trend :
+##                local_max_price['x'] = np.delete(local_max_price['x'], 0)
+##                local_max_price['y'] = np.delete(local_max_price['y'], 0)
+##
+##            while len(local_min_price['x']) > 0 and end_of_snap - 1 - local_min_price['x'][0] > max_trend :
+##                    local_min_price['x'] = np.delete(local_min_price['x'], 0)
+##                    local_min_price['y'] = np.delete(local_min_price['y'], 0)
+##
+##            while len(local_min_rsi['x']) > 0 and end_of_snap - 1 - local_min_rsi['x'][0] > max_trend :
+##                local_min_rsi['x'] = np.delete(local_min_rsi['x'], 0)
+##                local_min_rsi['y'] = np.delete(local_min_rsi['y'], 0)
+##
+##            while len(local_max_rsi['x'])> 0 and end_of_snap - 1 - local_max_rsi['x'][0] > max_trend :
+##                local_max_rsi['x'] = np.delete(local_max_rsi['x'], 0)
+##                local_max_rsi['y'] = np.delete(local_max_rsi['y'], 0)
                 
             #print(len(peak_max_price_right['x']))
             #print(len(peak_min_price_right['x']))
@@ -180,6 +185,18 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_tr
         return signal_series
 
 ## private functions purpose internal calls ##############
+def empty_list( data_list ) :
+    return len(data_list) == 0
+
+def update_peaks( pool_peak, new_peak, end_of_snap, h, max_trend ) :
+    if not empty_list(new_peak['x']) and new_peak['x'][-1] == end_of_snap - 1 :
+        if not empty_list(pool_peak['x']) and new_peak['x'][-1] - pool_peak['x'][-1] <= h :
+            pool_peak['x'][-1] = new_peak['x'][-1]
+            pool_peak['y'][-1] = new_peak['y'][-1]
+        else :
+            pool_peak['x'] = np.append(pool_peak['x'], new_peak['x'][-1])
+            pool_peak['y'] = np.append(pool_peak['y'], new_peak['y'][-1])
+
 def tiny_cut(data, start, end, n_neighbor) :
     tiny_size_right = 1 + 2*n_neighbor
 ##    tiny_size_left = tiny_size_right + 2
