@@ -180,7 +180,8 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot, min_tr
         high_convergence_plot = graph.dots_2d(x = high_convergence, y = [ offset_rsi_y+20 for i in high_convergence ], name='high convergence', color = 'orange')
         low_dots = graph.dots_2d(x = local_min_price['x'], y = local_min_price['y'] )
         low_low_dots = graph.dots_2d(x = local_min_rsi['x'], y = [ offset_rsi_y + i for i in local_min_rsi['y'] ] )
-        return signal_series ,trends_plot + [low_divergence_plot, low_convergence_plot, high_divergence_plot, high_convergence_plot, low_dots, low_low_dots]    
+        
+        return signal_series ,trends_plot + [low_divergence_plot, low_convergence_plot, high_divergence_plot, high_convergence_plot, low_dots, low_low_dots]   
     else :
         return signal_series
 
@@ -283,7 +284,7 @@ def weak_interception(peak_x, peak_y, index_from, index_to, allow_interception, 
             y = peak_y[peak_index]
             
             value_of_line = slope*(x-start_x) + start_y
-            if y < value_of_line - allow_interception*abs(dy)  :
+            if y < value_of_line - allow_interception*abs(dy) :
                 return False
 
         return True
@@ -293,7 +294,7 @@ def weak_interception(peak_x, peak_y, index_from, index_to, allow_interception, 
             y = peak_y[peak_index]
             
             value_of_line = slope*(x-start_x) + start_y
-            if y > value_of_line + allow_interception*abs(dy):
+            if y > value_of_line + allow_interception*abs(dy) :
                 return False
 
         return True
@@ -556,99 +557,4 @@ def signal_of_two_trends( peaks_dict1, peaks_dict2, trend_line1, trend_line2, mo
         raise "unknown mode specified ( must be 'min' or 'max' )"
 
 ## backup ##############################
-"""
-def signal_of_snapshot( high_snapshot, low_snapshot, rsi_snapshot, min_trend=10, max_trend=35, overlap_allowed=0.1, allowed_intercept=True, return_graph_objects=False) :
-    if len(high_snapshot) != len(low_snapshot) or len(high_snapshot) != len(indicator_snapshot) :
-        raise 'high_snapshot, low_snapshot or indicator_snapshot have mismatch length'
-    
-    snapshot_size = len(high_snapshot)
-    
-    #find local min and offset
-    global_minimum = min(low_snapshot)
-    offset_rsi_y = global_minimum-100
-    
-    trends_plot = []
-    for i in range(0, len_data - SNAPSHOT_SIZE) :
-        snapshot_price = data_frame[i:i+SNAPSHOT_SIZE].reset_index()
-        snapshot_rsi = data_rsi[i:i+SNAPSHOT_SIZE]
-        
-        local_min_price = local_min_max(snapshot_price.Low, mode='min')
-        local_min_rsi = local_min_max(snapshot_rsi, mode='min')
-        
-        #check if we have some local
-        if len(local_min_price['x']) >= 2 and len(local_min_rsi['x']) >= 2 :
-            #check if both price and rsi have new local
-            new_local_price_occur = local_min_price['x'][-1] == SNAPSHOT_SIZE-1
-            new_local_rsi_occur = local_min_rsi['x'][-1] == SNAPSHOT_SIZE-1
-            two_new_local = new_local_price_occur and new_local_rsi_occur
-            
-            if two_new_local :
-                min_price_peak = xy_list(local_min_price)
-                min_rsi_peak = xy_list(local_min_rsi)
-                
-                trends_price = possible_trendlines(min_price_peak, 'min', min_length=MIN_TREND, max_length=MAX_TREND, allow_interception=ALLOW_INTERCEPT)
-                trends_rsi = possible_trendlines(min_rsi_peak, 'min', min_length=MIN_TREND, max_length=MAX_TREND, allow_interception=ALLOW_INTERCEPT)
-                
-                best_price_trend, best_rsi_trend = match_trend_line(min_price_peak, min_rsi_peak, trends_price, trends_rsi, overlap_error_allowed=OVERLAP)
-                
-                if best_price_trend is None or best_rsi_trend is None :
-                    continue
-                
-                signal_found = signal_of_two_trends(min_price_peak, min_rsi_peak, best_price_trend, best_rsi_trend, 'min')
-            
-                if 'hidden' not in signal_found :
-                    if 'divergence' in signal_found :
-                        low_divergence.append(i + SNAPSHOT_SIZE - 1)
-                    elif 'convergence' in signal_found :
-                        low_convergence.append(i + SNAPSHOT_SIZE -1)
-                        
-                    trends_plot.append(trend_line(min_price_peak, best_price_trend, shift_x=i))
-                    trends_plot.append(trend_line(min_rsi_peak, best_rsi_trend, shift_x=i, shift_y=offset_rsi_y))
-        
-        #------------------------------
-        
-        local_max_price = local_min_max(snapshot_high, mode='max')
-        local_max_rsi = local_min_max(snapshot_rsi, mode='max')
-        
-        #check if we have some local
-        if len(local_max_price['x']) >= 2 and len(local_max_rsi['x']) >= 2 :
-            #check if both price and rsi have new local
-            new_local_price_occur = local_max_price['x'][-1] == SNAPSHOT_SIZE-1
-            new_local_rsi_occur = local_max_rsi['x'][-1] == SNAPSHOT_SIZE-1
-            two_new_local = new_local_price_occur and new_local_rsi_occur
-            
-            if two_new_local :
-                max_price_peak = xy_list(local_max_price)
-                max_rsi_peak = xy_list(local_max_rsi)
-                
-                trends_price = possible_trendlines(max_price_peak, 'max', min_length=MIN_TREND, max_length=MAX_TREND, allow_interception=ALLOW_INTERCEPT)
-                trends_rsi = possible_trendlines(max_rsi_peak, 'max', min_length=MIN_TREND, max_length=MAX_TREND, allow_interception=ALLOW_INTERCEPT)
-                
-                best_price_trend, best_rsi_trend = match_trend_line(max_price_peak, max_rsi_peak, trends_price, trends_rsi, overlap_error_allowed=OVERLAP)
-                
-                if best_price_trend is None or best_rsi_trend is None :
-                    continue
-                
-                signal_found = signal_of_two_trends(max_price_peak, max_rsi_peak, best_price_trend, best_rsi_trend, 'max')
-            
-                if 'hidden' not in signal_found :
-                    if 'divergence' in signal_found :
-                        high_divergence.append(i + SNAPSHOT_SIZE - 1)
-                    elif 'convergence' in signal_found :
-                        high_convergence.append(i + SNAPSHOT_SIZE -1)
-                    
-                    trends_plot.append(trend_line(max_price_peak, best_price_trend, shift_x=i))
-                    trends_plot.append(trend_line(max_rsi_peak, best_rsi_trend, shift_x=i, shift_y=offset_rsi_y))        
-        
-            
-    #plot
-    candle_plot = graph.candlestick(data_frame)
-    rsi_plot = graph.trace_line(data_rsi, name='RSI', offset_y=offset_rsi_y)
-    low_divergence_plot = graph.dots_2d(x = low_divergence, y = [ offset_rsi_y for i in low_divergence ], name='low divergence', color = 'blue')
-    low_convergence_plot = graph.dots_2d(x = low_convergence, y = [ offset_rsi_y for i in low_convergence ], name='low convergence', color = 'orange')
-    high_divergence_plot = graph.dots_2d(x = high_divergence, y = [ offset_rsi_y+20 for i in high_divergence ], name='high divergence', color = 'blue')
-    high_convergence_plot = graph.dots_2d(x = high_convergence, y = [ offset_rsi_y+20 for i in high_convergence ], name='high convergence', color = 'orange')
-    
-    graph.plot(dict(), 'temp title', candle_plot, rsi_plot, low_divergence_plot, low_convergence_plot, high_divergence_plot, high_convergence_plot, trends_plot)
-"""
 

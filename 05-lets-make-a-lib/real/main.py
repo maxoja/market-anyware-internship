@@ -52,7 +52,6 @@ if __name__ == '__main__':
         candle_plot = graph.candlestick(data_frame)
         rsi_plot = graph.trace_line(data_rsi, name='RSI', offset_y=min(data_low)-100)
 
-        login(1)
         print('ploting')
         graph.plot(dict(), 'temp title', candle_plot, rsi_plot, plots)
         print('finished ploting')
