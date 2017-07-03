@@ -6,7 +6,6 @@ from talib import RSI
 from dynamic_convergence_divergence import signal_of_series
 
 import time
-
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 if __name__ == '__main__':
@@ -14,7 +13,7 @@ if __name__ == '__main__':
     MIN_TREND = 10
     MAX_TREND = 35
     SHIFT_ALLOW = 6
-    ALLOW_INTERCEPT = False
+    ALLOW_INTERCEPT = 0.25
     PLOT = False
     
 ##    data_frame = data_from_api('SET', 'DAY')#[100:500].reset_index()
@@ -53,4 +52,7 @@ if __name__ == '__main__':
         candle_plot = graph.candlestick(data_frame)
         rsi_plot = graph.trace_line(data_rsi, name='RSI', offset_y=min(data_low)-100)
 
+        login(1)
+        print('ploting')
         graph.plot(dict(), 'temp title', candle_plot, rsi_plot, plots)
+        print('finished ploting')

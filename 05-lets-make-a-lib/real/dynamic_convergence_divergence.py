@@ -235,7 +235,7 @@ def down_trend(x_from, y_from, x_to, y_to):
     return not up_trend(x_from, y_from, x_to, y_to)
 
 #done
-def no_interception(peak_x, peak_y, index_from, index_to, mode):
+def weak_interception(peak_x, peak_y, index_from, index_to, allow_interception, mode):
     #parameter
     #   peaks       : list of xy() objects representing where the local peaks in the snapshot you want to check are located
     #   index_from  : index(position) of the beginning peak of the line
@@ -283,7 +283,7 @@ def no_interception(peak_x, peak_y, index_from, index_to, mode):
             y = peak_y[peak_index]
             
             value_of_line = slope*(x-start_x) + start_y
-            if y < value_of_line :
+            if y < value_of_line - allow_interception*abs(dy)  :
                 return False
 
         return True
@@ -293,7 +293,7 @@ def no_interception(peak_x, peak_y, index_from, index_to, mode):
             y = peak_y[peak_index]
             
             value_of_line = slope*(x-start_x) + start_y
-            if y > value_of_line :
+            if y > value_of_line + allow_interception*abs(dy):
                 return False
 
         return True
@@ -301,7 +301,7 @@ def no_interception(peak_x, peak_y, index_from, index_to, mode):
         raise ValueError("unknown mode : " + str(mode))
     
 #
-def convex_trend_line(peak_x, peak_y, mode):
+def convex_trend_line(peak_x, peak_y, allow_interception, mode):
     #parameters
     #   peaks_snapshot : list of xy() object representing where the local peaks in the snapshot you wnat to calculate are located
     #   mode           : defined string 'min' or 'max' indicating wheter the given peaks list are local min or local max peaks
@@ -340,7 +340,7 @@ def convex_trend_line(peak_x, peak_y, mode):
 
     #find the farest peak that can be connected without any interception with other adjacent peak connection
     for left_index in range(0,current_index):
-        if no_interception(peak_x, peak_y, left_index, current_index, mode) :
+        if weak_interception(peak_x, peak_y, left_index, current_index, allow_interception, mode) :
             best_root_index = left_index
             break
     
@@ -348,7 +348,7 @@ def convex_trend_line(peak_x, peak_y, mode):
     if best_root_index is None :
         return [current_index]
     else :
-        return convex_trend_line(peak_x[:best_root_index+1],peak_y[:best_root_index+1], mode) + [current_index]
+        return convex_trend_line(peak_x[:best_root_index+1],peak_y[:best_root_index+1], allow_interception, mode) + [current_index]
 
 #
 def possible_trendlines(peaks, mode, min_length, max_length, allow_interception) :
@@ -404,15 +404,13 @@ def possible_trendlines(peaks, mode, min_length, max_length, allow_interception)
         peak_snap_x = peaks['x'][i:]
         peak_snap_y = peaks['y'][i:]
         
-        new_line = convex_trend_line( peak_snap_x, peak_snap_y, mode )
-        new_line = [ x+i for x in new_line ]
-        
-        if allow_interception :
-            new_line = simplitfy_convex_line(new_line)
+        new_line = convex_trend_line( peak_snap_x, peak_snap_y, allow_interception, mode)
+
+        if len(new_line) >= 2 :
+            new_line = [new_line[-2],new_line[-1]]
+            new_line = [ x+i for x in new_line ]
+
             found_trend_lines.append(new_line)
-        else : #not allow interception
-            if is_straight_line(new_line) :
-                found_trend_lines.append(new_line)
         
     #return result
     return found_trend_lines
