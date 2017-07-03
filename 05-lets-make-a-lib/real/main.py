@@ -10,14 +10,14 @@ current_milli_time = lambda: int(round(time.time() * 1000))
 
 if __name__ == '__main__':
     SNAPSHOT_SIZE = 35
-    MIN_TREND = 10
-    MAX_TREND = 35
+    MIN_TREND = 10#minimum length of trendlines used in calculation
+    MAX_TREND = 35#maximum length of trend lines used for calculation
     SHIFT_ALLOW = 6
-    ALLOW_INTERCEPT = 0.25
-    PLOT = False
+    ALLOW_INTERCEPT = 0.25#percentage of trendline interception allowed
+    PLOT = True
     
 ##    data_frame = data_from_api('SET', 'DAY')#[100:500].reset_index()
-    data_frame = load('PTT.csv')#[100:500].reset_index()
+    data_frame = load('PTT.csv')[100:500].reset_index()
     close = data_frame.Close
     data_rsi = RSI(graph.float_nparray(close))
     data_low = data_frame.Low
