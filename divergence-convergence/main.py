@@ -5,8 +5,7 @@ from plotlyutil.authentication import login
 from talib import RSI
 from dynamic_convergence_divergence import signal_of_series
 
-import time
-current_milli_time = lambda: int(round(time.time() * 1000))
+from time import time as time_in_sec
 
 if __name__ == '__main__':
     SNAPSHOT_SIZE = 35
@@ -23,7 +22,7 @@ if __name__ == '__main__':
     data_low = data_frame.Low
     data_high = data_frame.High
 
-    start_time = (time.time())
+    start_time = (time_in_sec())
     print('started')
     
     if PLOT :
@@ -38,14 +37,8 @@ if __name__ == '__main__':
             SNAPSHOT_SIZE, MIN_TREND, MAX_TREND, SHIFT_ALLOW, ALLOW_INTERCEPT,
             n_neighbor=4, h=1, return_graph_objects=PLOT
         )
-
-##    signal_of_series(
-##            data_high, data_low, data_rsi,
-##            SNAPSHOT_SIZE, MIN_TREND, MAX_TREND, SHIFT_ALLOW, ALLOW_INTERCEPT,
-##            n_neighbor=4, h=1, return_graph_objects=PLOT
-##    )
         
-    end_time = (time.time())
+    end_time = (time_in_sec())
     print('finished in :', (end_time - start_time), 'seconds')
 
     if PLOT :
