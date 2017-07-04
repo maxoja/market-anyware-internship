@@ -1,11 +1,24 @@
 import numpy as np
 
-#notes
-#mode 0 -> min
-#mode 1 -> max
-#mode 2 -> min and max
-## lib function for import ##########################################
-def local_min_max( data_list, n_neighbor, h, mode=2, shift_x=None, start=None, end=None):
+'notes for funtion user and module editor'
+#mode flag
+'''
+0 -> local min mode
+1 -> local max mode
+2 -> local min and max mode ( return both )
+'''
+
+# lib function for import -------------------------------------------------------------
+def local_min_max( data_list, n_neighbor, h, mode=2, shift_x=0, start=None, end=None):
+    ''' return dict(s) with key x,y of local min and max separately '''
+    #data_list     -> series of price, rsi, macd, etc..
+    #n_neighbor    -> number of nearest peak will be used for a peak validation
+    #h             -> a ratio of change that you will let a location become a peak regardless neighbor validation
+    #[optional]
+    #shift_x       -> an amount of shifting you want to apply to x values
+    #start         -> where you want to start checking local locations 
+    #end           -> where you want to stop checking local locations
+    
     if start is None or end is None :
         start = 0
         end = len(data_list)
@@ -13,15 +26,13 @@ def local_min_max( data_list, n_neighbor, h, mode=2, shift_x=None, start=None, e
     if mode == 0 or mode == 2 :
         local_min_location = local_peak_location(data_list, n_neighbor, h, 0, start, end)
         local_min_value = [ data_list[location] for location in local_min_location ]
-        if shift_x is not None :
-            local_min_location = [ x+shift_x for x in local_min_location ]
+        local_min_location = [ x+shift_x for x in local_min_location ] if shift_x is not 0 else local_min_location
         local_min = dict(x=local_min_location, y=local_min_value)
         
     if mode == 1 or mode == 2 :
         local_max_location = local_peak_location(data_list, n_neighbor, h, 1, start, end)
         local_max_value = [ data_list[location] for location in local_max_location ]
-        if shift_x is not None :
-            local_max_location = [ x+shift_x for x in local_max_location ]
+        local_max_location = [ x+shift_x for x in local_max_location ] if shift_x is not 0 else local_max_location
         local_max = dict(x=local_max_location, y=local_max_value)
     
     if mode == 2:
@@ -33,8 +44,9 @@ def local_min_max( data_list, n_neighbor, h, mode=2, shift_x=None, start=None, e
     else :
         raise ValueError("unknow mode : " + str(mode))
 
-# private function purpose internal calls ##############
+# private function purpose internal calls ------------------------------
 def all_higher_lower(data_snap, current_value, mode) :
+    ''' return boolean as the name suggest '''
     if mode == 0 :
         return sum(np.nonzero(data_snap < current_value)[0]) <= 0
     elif mode == 1 :
@@ -42,10 +54,8 @@ def all_higher_lower(data_snap, current_value, mode) :
     else :
         raise ValueError("unknow mode : " + str(mode))
 
-#done
 def locate_peak(mode, absolute_locations, data, n_neighbor, start, end):
-    ''' return absolute peak locations '''
-##    result = np.array([])
+    ''' return an np.array of absolute locations of local min/max '''
     result = []
     
     for current_location in absolute_locations:
@@ -59,41 +69,26 @@ def locate_peak(mode, absolute_locations, data, n_neighbor, start, end):
         
     return np.array(result)
 
-#def sign(value) :
-    #if value > 0 :
-        #return 1
-    #if value < 1 :
-        #return -1
-    
-    #return 0
-
-#done
 def get_acceleration ( data, start, end ):
-    #acceleration = []
-    #for i in range(start,end-2) :
-        #acceleration.append( sign((data[i+2] - data[i+1])) - sign((data[i+1] - data[i])) )
-        
+    ''' return an np.array of acceleration with meaning below '''
+    #+2 -> trend change from down to up    
+    #+1 -> trend change from down to zero | zero to up
+    # 0 -> same trend
+    #-1 -> trend change from up to zero | zero to down 
+    #-2 -> trend change from up to down
+    
     change = np.diff(data[start:end])
     direction = np.sign(change)
     acceleration = np.diff(direction)
     
     return acceleration
 
-    #element meaning
-    #-2 -> up-down
-    #-1 -> up-zero | zero-down 
-    #0  -> keep same direction
-    #1  -> down-zero | zero-up
-    #2  -> down-up
-
-#done
 def get_location_of_value ( data, value ):
-    ''' return relative location '''
+    ''' an np.array of relative locations where the value specified located'''
     return np.nonzero(data == value)[0]
 
-#done
 def bull_bear_location ( trend_acceleration, start, end ):
-    ''' return absolute location '''
+    ''' return a tuple of 2 np.array of absolute location where bullish/bearish trend occured '''
     location_swing_up = get_location_of_value(trend_acceleration, 2)        #list of locations where trend change from down to up
     location_bend_up = get_location_of_value(trend_acceleration, 1)         #list of locations where trend change from down to zero | zero to up
     location_swing_down = get_location_of_value(trend_acceleration, -2)     #list of locations where trend change from up to down
@@ -108,22 +103,17 @@ def bull_bear_location ( trend_acceleration, start, end ):
     location_bull = np.union1d(location_swing_up, location_bend_up)
     location_bear = np.union1d(location_swing_down, location_bend_down)
     
-    #print(len(location_bull), len(location_bear))
     return location_bull, location_bear
     
-#
 def local_peak_location(data, n_neighbor, h, mode, start, end) :
+    ''' return list(s) of location where local peak occur, min and max separately '''
     trend_acceleration = get_acceleration( data, start, end )
     location_bull, location_bear = bull_bear_location( trend_acceleration, start, end )
     
-    #to call locate_peak, should pass absolute locations of location_bull and location_bear
-    #[clear]
     location_min_peak = locate_peak(0, location_bull, data, n_neighbor, start, end)
     location_max_peak = locate_peak(1, location_bear, data, n_neighbor, start, end)
                                                                   
     location_all_peak = np.union1d(location_bull, location_bear)
-    #location_min_peak = np.append(location_min_peak, len(data) - 1)
-    #location_max_peak = np.append(location_max_peak, len(data) - 1)
     
     for i in range(1, len(location_all_peak)-1):
         location_left = location_all_peak[i-1]
@@ -145,15 +135,13 @@ def local_peak_location(data, n_neighbor, h, mode, start, end) :
             if location_current in location_bear:
                 location_max_peak = np.append(location_max_peak, location_current)
                 
+    ''' do not want to make starting location to be a peak anymore '''
+    ''' so, can safely leave it stay still here, just in case we need it someday '''
     #location_min_peak = np.append(location_min_peak, 0)
     #location_max_peak = np.append(location_max_peak, 0)
+    
     location_min_peak = np.sort(location_min_peak)
     location_max_peak = np.sort(location_max_peak)
-    
-    #if location_min_peak[0]==0:
-        #location_min_peak=np.delete(location_min_peak,0)
-    #if location_max_peak[0] == 0:
-        #location_max_peak = np.delete(location_max_peak, 0)
 
     if mode == 2 :
         return location_min_peak, location_max_peak
