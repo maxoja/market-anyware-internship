@@ -1,6 +1,5 @@
 #recursive trend line
 from local_min_max import local_min_max
-from plotlyutil import graph
 import numpy as np
 
 #public function for import
@@ -108,10 +107,6 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot=35, min
                     elif signal_found == 2: # is regular bearish convergence
                         low_convergence.append(end_of_snap -1)
                         signal_series.append(signal_found)
-                        
-                    if return_graph_objects and (signal_found == 1 or signal_found == 2) :
-                        trends_plot.append(trend_line(local_min_price, best_price_trend, shift_x=0))
-                        trends_plot.append(trend_line(local_min_rsi, best_rsi_trend, shift_x=0, shift_y=offset_rsi_y))
         
         #------------------------------
         
@@ -146,19 +141,8 @@ def signal_of_series( high_series, low_series, rsi_series, size_snapshot=35, min
             signal_series.append(0)
 
     signal_series = [ None for i in range(size_snapshot) ] + signal_series
-    
-    if return_graph_objects :
-        #create plot objects
-        low_divergence_plot = graph.dots_2d(x = low_divergence, y = [ offset_rsi_y for i in low_divergence ], name='low divergence', color = 'blue')
-        low_convergence_plot = graph.dots_2d(x = low_convergence, y = [ offset_rsi_y for i in low_convergence ], name='low convergence', color = 'orange')
-        high_divergence_plot = graph.dots_2d(x = high_divergence, y = [ offset_rsi_y+20 for i in high_divergence ], name='high divergence', color = 'blue')
-        high_convergence_plot = graph.dots_2d(x = high_convergence, y = [ offset_rsi_y+20 for i in high_convergence ], name='high convergence', color = 'orange')
-        low_dots = graph.dots_2d(x = local_min_price['x'], y = local_min_price['y'] )
-        low_low_dots = graph.dots_2d(x = local_min_rsi['x'], y = [ offset_rsi_y + i for i in local_min_rsi['y'] ] )
         
-        return signal_series ,trends_plot + [low_divergence_plot, low_convergence_plot, high_divergence_plot, high_convergence_plot, low_dots, low_low_dots]   
-    else :
-        return signal_series
+    return signal_series
 
 ## private functions purpose internal calls ##############
 def empty_list( data_list ) :
@@ -184,17 +168,6 @@ def tiny_cut(data, start, end, n_neighbor) :
     
     return right_cut
     
-def trend_line(peak_dict, trend, shift_x=0, shift_y=0):
-    y = [ peak_dict['y'][trend[0]] + shift_y, peak_dict['y'][trend[1]] + shift_y ]
-    x = [ peak_dict['x'][trend[0]] + shift_x, peak_dict['x'][trend[1]] + shift_x ]
-    
-    if y[1] < y[0]:
-        color = 'red'
-    else :
-        color = 'green'
-        
-    return graph.trace_line_with_domain(x=x, y=y, color=color, width=1, name='selected trend')
-
 def is_straight_line(line):
     return len(line) == 2
 
