@@ -1,0 +1,10 @@
+a lot useful of mathematical theory
+ - pareto
+ - markov’s chain
+ - the kelly criterion
+
+sense of market and trading
+
+risk management really does effect
+arbitrage ( will try to do this as a project of Advanced-OOP course )
+dynamic parameter

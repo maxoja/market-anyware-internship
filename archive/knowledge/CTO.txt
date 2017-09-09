@@ -1,0 +1,10 @@
+- code quality
+ - white space
+ - naming
+ - convention
+
+- development pattern
+ - test driven development
+
+- functional programming
+ - 
